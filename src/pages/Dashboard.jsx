@@ -4,9 +4,16 @@ import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { trips, user } = useData();
+  const [searchQuery, setSearchQuery] = React.useState('');
   
-  const activeTrip = trips.length > 0 ? trips[0] : null;
-  const otherTrips = trips.slice(1);
+  const filteredTrips = trips.filter(trip => 
+    trip.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    trip.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    trip.start_date?.includes(searchQuery)
+  );
+
+  const activeTrip = filteredTrips.length > 0 ? filteredTrips[0] : null;
+  const otherTrips = filteredTrips.slice(1);
 
   return (
     <div className="animate-fade-in">
@@ -20,6 +27,8 @@ const Dashboard = () => {
             className="w-full bg-[#0a0a0c] border border-white/10 rounded-xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-outline-variant" 
             placeholder="Search destinations, trips, or bookings..." 
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </section>
@@ -27,13 +36,20 @@ const Dashboard = () => {
       {/* Trips Section */}
       <section>
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-headline-lg text-headline-lg text-on-surface">My Trips</h2>
+          <h2 className="font-headline-lg text-headline-lg text-on-surface">
+            {searchQuery ? `Search Results (${filteredTrips.length})` : 'My Trips'}
+          </h2>
           <Link to="/create-trip" className="accent-gradient text-white px-button-padding-x py-button-padding-y rounded-xl font-label-md text-label-md active:scale-95 transition-transform">
             New Trip
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+          {!activeTrip && searchQuery && (
+            <div className="col-span-12 py-12 text-center glass-panel rounded-xl">
+              <p className="text-on-surface-variant italic">No trips matching "{searchQuery}"</p>
+            </div>
+          )}
           {activeTrip ? (
             <>
               {/* Active Trip Card (Featured) */}
