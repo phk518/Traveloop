@@ -1,199 +1,190 @@
-import express, { Request, Response, NextFunction } from 'express';
+import mojo, { MojoContext } from '@mojojs/core';
 import mongoose from 'mongoose';
-import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
-import { User, Trip, IUser, ITrip } from './models/Schemas';
+import { User, Trip } from './models/Schemas';
 
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+const app = mojo();
+const PORT = parseInt(process.env.PORT || '3001');
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/traveloop';
 const JWT_SECRET = process.env.JWT_SECRET || 'cosmic-traveloop-secret-2026';
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Extend Request type to include user
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    isAdmin: boolean;
-  };
-}
-
-// Auth Middleware
-const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) return res.status(401).json({ error: 'Access denied' });
-
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user as { id: string; isAdmin: boolean };
-    next();
-  });
-};
-
 // MongoDB Connection
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => console.log('Connected to MongoDB via mojo.js'))
   .catch(err => console.error('MongoDB connection error:', err));
 
+// CORS Hook
+app.addHook('beforeDispatch', async (ctx) => {
+  ctx.res.set('Access-Control-Allow-Origin', '*');
+  ctx.res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  ctx.res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (ctx.req.method === 'OPTIONS') {
+    await ctx.render({ text: '', status: 204 });
+    return true;
+  }
+});
+
+// Auth Helper
+app.addHelper('authenticate', async (ctx: MojoContext) => {
+  const authHeader = ctx.req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    await ctx.render({ json: { error: 'Access denied' }, status: 401 });
+    return null;
+  }
+
+  try {
+    const user = jwt.verify(token, JWT_SECRET) as { id: string; isAdmin: boolean };
+    return user;
+  } catch (err) {
+    await ctx.render({ json: { error: 'Invalid token' }, status: 403 });
+    return null;
+  }
+});
+
 // Routes
-app.get('/', (req: Request, res: Response) => {
-  res.send('Traveloop Secured TS API is running');
+const api = app.any('/api').to({ controller: 'api' });
+
+// Auth
+app.post('/api/auth/register').to(async (ctx) => {
+  const { email, password, name } = await ctx.req.json();
+  const existing = await User.findOne({ email });
+  if (existing) return ctx.render({ json: { error: 'Email already registered' }, status: 400 });
+  
+  const user = new User({ email, password, name });
+  await user.save();
+  
+  const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
+  await ctx.render({ json: { user, token } });
 });
 
-// Auth Routes
-app.post('/api/auth/register', async (req: Request, res: Response) => {
-  try {
-    const { email, password, name } = req.body;
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ error: 'Email already registered' });
-    
-    const user = new User({ email, password, name });
-    await user.save();
-    
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
-    res.json({ user, token });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
+app.post('/api/auth/login').to(async (ctx) => {
+  const { email, password } = await ctx.req.json();
+  const user = await User.findOne({ email });
+  if (!user) return ctx.render({ json: { error: 'Invalid credentials' }, status: 401 });
+  
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return ctx.render({ json: { error: 'Invalid credentials' }, status: 401 });
+  
+  const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
+  await ctx.render({ json: { user, token } });
 });
 
-app.post('/api/auth/login', async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
-    
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
-    res.json({ user, token });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+// Trips
+app.get('/api/trips').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const trips = await Trip.find({ userId: authUser.id });
+  await ctx.render({ json: trips });
 });
 
-// Trip Routes
-app.get('/api/trips', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    const trips = await Trip.find({ userId });
-    res.json(trips);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/api/trips').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const body = await ctx.req.json();
+  const trip = new Trip({ ...body, userId: authUser.id });
+  await trip.save();
+  await ctx.render({ json: trip });
 });
 
-app.post('/api/trips', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const { name, start_date, end_date, description, cover_photo } = req.body;
-    const trip = new Trip({ userId: req.user?.id, name, start_date, end_date, description, cover_photo });
-    await trip.save();
-    res.json(trip);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+app.put('/api/trips/:id').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const trip = await Trip.findOne({ _id: ctx.stash.id, userId: authUser.id });
+  if (!trip) return ctx.render({ json: { error: 'Trip not found' }, status: 404 });
+  
+  Object.assign(trip, await ctx.req.json());
+  await trip.save();
+  await ctx.render({ json: trip });
 });
 
-app.put('/api/trips/:id', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const trip = await Trip.findOne({ _id: req.params.id, userId: req.user?.id });
-    if (!trip) return res.status(404).json({ error: 'Trip not found or unauthorized' });
-    
-    Object.assign(trip, req.body);
-    await trip.save();
-    res.json(trip);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+app.get('/api/trips/:id/full').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const trip = await Trip.findOne({ _id: ctx.stash.id, userId: authUser.id });
+  if (!trip) return ctx.render({ json: { error: 'Trip not found' }, status: 404 });
+  await ctx.render({ json: trip });
 });
 
-app.post('/api/trips/:id/clone', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const originalTrip = await Trip.findById(req.params.id);
-    if (!originalTrip) return res.status(404).json({ error: 'Original trip not found' });
-    
-    const clonedTripData = originalTrip.toObject();
-    delete clonedTripData._id;
-    delete (clonedTripData as any).id;
-    delete clonedTripData.createdAt;
-    delete clonedTripData.updatedAt;
-    
-    clonedTripData.userId = req.user?.id;
-    clonedTripData.name = `${clonedTripData.name} (Copy)`;
-    
-    const clonedTrip = new Trip(clonedTripData);
-    await clonedTrip.save();
-    res.json(clonedTrip);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/api/trips/:id/clone').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const originalTrip = await Trip.findById(ctx.stash.id);
+  if (!originalTrip) return ctx.render({ json: { error: 'Original trip not found' }, status: 404 });
+  
+  const clonedTripData = originalTrip.toObject();
+  delete clonedTripData._id;
+  delete (clonedTripData as any).id;
+  delete (clonedTripData as any).createdAt;
+  delete (clonedTripData as any).updatedAt;
+  
+  clonedTripData.userId = authUser.id;
+  clonedTripData.name = `${clonedTripData.name} (Copy)`;
+  
+  const clonedTrip = new Trip(clonedTripData);
+  await clonedTrip.save();
+  await ctx.render({ json: clonedTrip });
 });
 
-app.get('/api/trips/:id/full', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const trip = await Trip.findOne({ _id: req.params.id, userId: req.user?.id });
-    if (!trip) return res.status(404).json({ error: 'Trip not found' });
-    res.json(trip);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+// Stops & Activities
+app.post('/api/trips/:id/stops').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const trip = await Trip.findOne({ _id: ctx.stash.id, userId: authUser.id });
+  if (!trip) return ctx.render({ json: { error: 'Trip not found' }, status: 404 });
+  
+  const body = await ctx.req.json();
+  trip.stops.push(body);
+  await trip.save();
+  await ctx.render({ json: trip.stops[trip.stops.length - 1] });
 });
 
-// Stop Routes
-app.post('/api/trips/:id/stops', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const trip = await Trip.findOne({ _id: req.params.id, userId: req.user?.id });
-    if (!trip) return res.status(404).json({ error: 'Trip not found' });
-    
-    trip.stops.push(req.body);
-    await trip.save();
-    
-    res.json(trip.stops[trip.stops.length - 1]);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+app.delete('/api/stops/:id').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const trip = await Trip.findOne({ "stops._id": ctx.stash.id, userId: authUser.id });
+  if (!trip) return ctx.render({ json: { error: 'Stop not found' }, status: 404 });
+  
+  trip.stops = trip.stops.filter((s: any) => s._id.toString() !== ctx.stash.id);
+  await trip.save();
+  await ctx.render({ json: { success: true } });
 });
 
-app.delete('/api/stops/:id', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const trip = await Trip.findOne({ "stops._id": req.params.id, userId: req.user?.id });
-    if (!trip) return res.status(404).json({ error: 'Stop not found' });
-    
-    trip.stops = trip.stops.filter((s: any) => s._id.toString() !== req.params.id);
-    await trip.save();
-    res.json({ success: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/api/stops/:id/activities').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser) return;
+  
+  const trip = await Trip.findOne({ "stops._id": ctx.stash.id, userId: authUser.id });
+  if (!trip) return ctx.render({ json: { error: 'Stop not found' }, status: 404 });
+  
+  const stop = (trip.stops as any).id(ctx.stash.id);
+  const body = await ctx.req.json();
+  stop.activities.push(body);
+  await trip.save();
+  await ctx.render({ json: stop.activities[stop.activities.length - 1] });
 });
 
-// Activity Routes
-app.post('/api/stops/:id/activities', authenticateToken as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const trip = await Trip.findOne({ "stops._id": req.params.id, userId: req.user?.id });
-    if (!trip) return res.status(404).json({ error: 'Stop not found' });
-    
-    const stop = (trip.stops as any).id(req.params.id);
-    stop.activities.push(req.body);
-    await trip.save();
-    res.json(stop.activities[stop.activities.length - 1]);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+// Admin
+app.get('/api/admin/stats').to(async (ctx) => {
+  const authUser = await ctx.authenticate();
+  if (!authUser || !authUser.isAdmin) return ctx.render({ json: { error: 'Admin access required' }, status: 403 });
+  
+  const totalUsers = await User.countDocuments();
+  const totalTrips = await Trip.countDocuments();
+  await ctx.render({ json: { totalUsers, totalTrips } });
 });
 
-// ... other routes updated similarly with AuthRequest and types ...
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT} with MongoDB (TypeScript)`);
-});
+app.start();
