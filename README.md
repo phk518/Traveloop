@@ -6,11 +6,15 @@
 
 ## 🚀 Key Technical Milestones
 
-### 🛡️ Secure-First Architecture
+### 🏗️ Elite Systems Architecture
+- **Atomic Design System**: A modular UI ecosystem built on Atoms, Molecules, and Organisms. Components are highly reusable, accessible (A11y), and standardized via design tokens.
+- **Staff Engineer Directives**: Strict adherence to DRY, SRP, and separation of concerns. Monolithic pages have been decomposed into maintainable sub-modules.
 - **Python Security Guard**: A custom `security_audit.py` engine that automates secret scanning, dependency auditing, and WAF simulation.
+- **Full-Stack TypeScript & Mojo.js**: 100% type safety paired with a high-performance, real-time backend framework for sub-second responsiveness.
+
+### 🛡️ Secure-First Architecture
 - **JWT & Bcrypt**: Robust session management and password hashing ensure all traveler data is encrypted and protected.
 - **Authorized Endpoints**: Every API route is guarded by an authentication middleware, preventing unauthorized access to private manifests.
-- **Full-Stack TypeScript**: 100% type coverage from the database schema to the frontend components, eliminating entire classes of runtime errors.
 
 ### ⚡ High-Performance Backend (mojo.js)
 - **Framework**: Migrated from Express to **mojo.js**, a modern real-time framework designed for 3x performance and built-in scalability.
