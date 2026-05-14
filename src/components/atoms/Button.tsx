@@ -7,6 +7,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
+import { motion } from 'framer-motion';
+
 const Button: React.FC<ButtonProps> = ({ 
   variant = 'primary', 
   size = 'md', 
@@ -16,7 +18,7 @@ const Button: React.FC<ButtonProps> = ({
   className = '', 
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center justify-center gap-2 font-label-md rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none";
+  const baseStyles = "inline-flex items-center justify-center gap-2 font-label-md rounded-xl transition-colors disabled:opacity-50 disabled:pointer-events-none";
   
   const variants = {
     primary: "accent-bg text-white shadow-lg shadow-primary/20 hover:brightness-110",
@@ -33,7 +35,10 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   return (
-    <button 
+    <motion.button 
+      whileHover={{ scale: 1.05, y: -2 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={loading}
       {...props}
@@ -44,7 +49,7 @@ const Button: React.FC<ButtonProps> = ({
         <span className="material-symbols-outlined text-[20px]">{icon}</span>
       )}
       {children}
-    </button>
+    </motion.button>
   );
 };
 

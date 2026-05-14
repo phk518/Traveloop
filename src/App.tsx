@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import CosmicBackground from './components/CosmicBackground';
 
 // Static Components
 import Header from './components/Header';
@@ -38,22 +40,32 @@ const ProtectedRoute = ({ children }) => {
   if (!user) return <Navigate to="/login" />;
   return children;
 };
-
-const Layout = ({ children }) => {
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user } = useData();
   const location = useLocation();
   const isDetailView = location.pathname.startsWith('/trip/');
 
   return (
-    <>
+    <div className="min-h-screen relative overflow-hidden">
+      <CosmicBackground />
       {user && !isDetailView && <Header user={user} />}
       <main className={isDetailView ? '' : `px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto pb-32 ${user ? 'pt-24' : ''}`}>
-        <Suspense fallback={<PageLoader />}>
-          {children}
-        </Suspense>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <Suspense fallback={<PageLoader />}>
+              {children}
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
       </main>
       {user && !isDetailView && <BottomNav />}
-    </>
+    </div>
   );
 };
 
