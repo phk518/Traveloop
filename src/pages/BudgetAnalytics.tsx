@@ -12,6 +12,9 @@ import { fetchExchangeRate } from '../services/currencyService';
 import { calculateBudgetStats } from '../utils/budgetUtils';
 import { Trip } from '../types';
 import TripDetailNav from '../components/TripDetailNav';
+import Button from '../components/atoms/Button';
+import TripHeader from '../components/molecules/TripHeader';
+import GlassCard from '../components/organisms/GlassCard';
 
 ChartJS.register(
   ArcElement, Tooltip, Legend, CategoryScale, LinearScale,
@@ -65,10 +68,23 @@ const BudgetAnalytics: React.FC = () => {
 
   return (
     <div className="animate-fade-in pb-32">
-      <BudgetHeader 
-        selectedCurrency={selectedCurrency} 
-        onCurrencyChange={setSelectedCurrency} 
-        navigate={navigate} 
+      <TripHeader 
+        title="Traveloop"
+        actions={
+          <div className="bg-white/5 border border-white/10 rounded-full px-2 py-1 flex items-center gap-1">
+            {Object.keys(CURRENCIES).map(c => (
+              <Button
+                key={c}
+                variant={selectedCurrency === c ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedCurrency(c)}
+                className="!px-3 !py-1 text-[10px] font-bold"
+              >
+                {c}
+              </Button>
+            ))}
+          </div>
+        }
       />
 
       <main className="pt-24 px-margin-mobile md:px-margin-desktop max-w-6xl mx-auto space-y-8">
@@ -143,7 +159,7 @@ const BudgetHeader = ({ selectedCurrency, onCurrencyChange, navigate }: any) => 
 );
 
 const TotalCostCard = ({ total, currency }: any) => (
-  <section className="glass-panel rounded-xl p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden">
+  <GlassCard variant="primary" className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden">
     <div className="absolute inset-0 bg-primary/5 pointer-events-none"></div>
     <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Total Estimated Expenses</p>
     <h3 className="font-display-lg text-[48px] md:text-[64px] accent-text-gradient py-2 font-bold">
@@ -153,11 +169,11 @@ const TotalCostCard = ({ total, currency }: any) => (
       <span className="material-symbols-outlined text-primary text-sm">payments</span>
       <p className="font-label-sm text-label-sm text-primary">Values converted to {currency.name}</p>
     </div>
-  </section>
+  </GlassCard>
 );
 
 const CategoryBreakdown = ({ data, options, categories, topCategory }: any) => (
-  <section className="glass-panel rounded-xl p-6 lg:col-span-1">
+  <GlassCard className="lg:col-span-1">
     <div className="flex items-center justify-between mb-8">
       <h4 className="font-headline-md text-headline-md text-on-surface">Category Breakdown</h4>
       <span className="material-symbols-outlined text-on-surface-variant">pie_chart</span>
@@ -177,11 +193,11 @@ const CategoryBreakdown = ({ data, options, categories, topCategory }: any) => (
         </div>
       ))}
     </div>
-  </section>
+  </GlassCard>
 );
 
 const DailySpending = ({ data, options, hasData }: any) => (
-  <section className="glass-panel rounded-xl p-6 lg:col-span-2">
+  <GlassCard className="lg:col-span-2">
     <div className="flex items-center justify-between mb-8">
       <h4 className="font-headline-md text-headline-md text-on-surface">Daily Spending</h4>
       <span className="material-symbols-outlined text-on-surface-variant">bar_chart</span>
@@ -193,7 +209,7 @@ const DailySpending = ({ data, options, hasData }: any) => (
         <div className="h-full w-full flex items-center justify-center opacity-30 italic">No activity data yet</div>
       )}
     </div>
-  </section>
+  </GlassCard>
 );
 
 const BudgetAlert = ({ topCategory }: any) => (
@@ -202,7 +218,7 @@ const BudgetAlert = ({ topCategory }: any) => (
       <span className="material-symbols-outlined text-error">notification_important</span>
       Critical Alerts
     </h4>
-    <div className="glass-panel red-glow border-error/20 rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-start gap-6">
+    <GlassCard variant="error" className="md:p-8 flex flex-col md:flex-row items-start gap-6">
       <div className="w-12 h-12 rounded-lg bg-error-container flex items-center justify-center shrink-0">
         <span className="material-symbols-outlined text-on-error-container">warning</span>
       </div>
@@ -214,8 +230,12 @@ const BudgetAlert = ({ topCategory }: any) => (
         <p className="font-body-md text-body-md text-on-surface-variant mb-6 leading-relaxed">
           Your spending in the <strong className="text-error">{topCategory}</strong> category has significantly exceeded the projected average.
         </p>
+        <div className="flex gap-4">
+          <Button variant="error" size="sm">Review Items</Button>
+          <Button variant="outline" size="sm">Dismiss</Button>
+        </div>
       </div>
-    </div>
+    </GlassCard>
   </section>
 );
 

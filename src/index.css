@@ -3,56 +3,38 @@
 @tailwind utilities;
 
 :root {
-  /* Cosmic Dark Theme Variables */
-  --bg-deep: #131315;
-  --bg-surface: #201f21;
-  --accent-primary: #d0bcff;
-  --accent-secondary: #aa0266;
+  /* Cosmic Dark Design Tokens */
+  --color-primary: #d0bcff;
+  --color-primary-container: #a078ff;
+  --color-secondary: #ffb0cd;
+  --color-secondary-container: #aa0266;
+  --color-background: #131315;
+  --color-surface: #131315;
+  --color-surface-container: #201f21;
+  --color-on-surface: #e5e1e4;
+  --color-outline: #958ea0;
 }
 
 body {
-  @apply bg-background text-on-background min-h-screen font-body-md;
+  @apply bg-background text-on-background min-h-screen font-body-md antialiased;
 }
 
-/* Custom Stitch AI Styles */
-.material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+/* Base Atoms */
+.accent-gradient {
+  background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-secondary-container) 100%);
 }
 
+.accent-text-gradient {
+  background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-secondary-container) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Organisms: Glass Panels */
 .glass-panel {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.3s ease;
-}
-
-.glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.accent-gradient {
-    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
-}
-
-.accent-bg {
-    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
-}
-
-.accent-gradient-bg {
-    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
-}
-
-.accent-text-gradient {
-    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 .active-glow {

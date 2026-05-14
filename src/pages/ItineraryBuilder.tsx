@@ -8,6 +8,8 @@ import StopNode from '../components/itinerary/StopNode';
 import StopModal from '../components/itinerary/StopModal';
 import ActivityModal from '../components/itinerary/ActivityModal';
 import TripDetailNav from '../components/TripDetailNav';
+import Button from '../components/atoms/Button';
+import TripHeader from '../components/molecules/TripHeader';
 
 const ItineraryBuilder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -84,18 +86,19 @@ const ItineraryBuilder: React.FC = () => {
 
   return (
     <div className="animate-fade-in pb-32">
-      <header className="fixed top-0 w-full z-50 h-16 flex justify-between items-center px-margin-mobile md:px-margin-desktop bg-surface/30 backdrop-blur-xl border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(`/trip/${id}`)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/5 transition-colors">
-            <span className="material-symbols-outlined text-primary">arrow_back</span>
-          </button>
-          <h1 className="font-headline-md text-headline-md font-bold text-primary">Manifest Editor</h1>
-        </div>
-        <button onClick={() => setShowStopModal(true)} className="accent-bg px-5 py-2 rounded-xl font-label-md text-white shadow-lg hover:brightness-110 transition-all flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px]">add_location</span>
-          <span>Add Stop</span>
-        </button>
-      </header>
+      <TripHeader 
+        title="Manifest Editor"
+        onBackClick={() => navigate(`/trip/${id}`)}
+        actions={
+          <Button 
+            variant="primary" 
+            icon="add_location" 
+            onClick={() => setShowStopModal(true)}
+          >
+            Add Stop
+          </Button>
+        }
+      />
 
       <main className="max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop pt-24 space-y-12">
         <div className="space-y-2">
