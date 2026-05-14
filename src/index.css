@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Cosmic Dark Theme Variables */
+  --bg-deep: #131315;
+  --bg-surface: #201f21;
+  --accent-primary: #d0bcff;
+  --accent-secondary: #aa0266;
+}
+
+body {
+  @apply bg-background text-on-background min-h-screen font-body-md;
+}
+
+/* Custom Stitch AI Styles */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.accent-gradient {
+    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
+}
+
+.accent-bg {
+    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
+}
+
+.accent-gradient-bg {
+    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
+}
+
+.accent-text-gradient {
+    background: linear-gradient(135deg, #a078ff 0%, #aa0266 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.active-glow {
+    box-shadow: 0 0 15px rgba(208, 188, 255, 0.3);
+}
+
+.red-glow {
+    box-shadow: 0 0 20px rgba(255, 82, 82, 0.15);
+}
+
+.scrim-bottom {
+    background: linear-gradient(to top, rgba(19, 19, 21, 0.95) 0%, rgba(19, 19, 21, 0.4) 60%, transparent 100%);
+}
+
+.avatar-glow {
+  box-shadow: 0 0 30px rgba(208, 188, 255, 0.3);
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at top center, rgba(208, 188, 255, 0.15) 0%, transparent 70%);
+}
+
+/* Custom Checkbox for Checklist */
+.custom-checkbox:checked {
+    background-color: #a078ff;
+    border-color: #a078ff;
+}
+
+.custom-checkbox {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #958e9f;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    background: transparent;
+}
+
+.custom-checkbox:checked::after {
+    content: 'check';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #340080;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Transitions */
+.transition-smooth {
+  @apply transition-all duration-300;
+}
+
+/* Hide scrollbar for cleaner look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
