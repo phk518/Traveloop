@@ -7,6 +7,7 @@
 ## 🚀 Key Technical Milestones
 
 ### 🛡️ Secure-First Architecture
+- **Python Security Guard**: A custom `security_audit.py` engine that automates secret scanning, dependency auditing, and WAF simulation.
 - **JWT & Bcrypt**: Robust session management and password hashing ensure all traveler data is encrypted and protected.
 - **Authorized Endpoints**: Every API route is guarded by an authentication middleware, preventing unauthorized access to private manifests.
 - **Full-Stack TypeScript**: 100% type coverage from the database schema to the frontend components, eliminating entire classes of runtime errors.
@@ -31,8 +32,8 @@
 | :--- | :--- |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS |
 | **Backend** | **mojo.js**, TypeScript, Node.js |
+| **Security** | Python (Bandit, Safety), JWT, Bcrypt.js |
 | **Database** | MongoDB (Mongoose ODM) |
-| **Security** | JSON Web Tokens (JWT), Bcrypt.js |
 | **Testing** | Playwright (Smoke Tests) |
 
 ---
