@@ -60,7 +60,7 @@ app.post('/api/auth/register').to(async (ctx) => {
   const user = new User({ email, password, name });
   await user.save();
   
-  const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
+  const token = jwt.sign({ id: user._id.toString(), isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
   await ctx.render({ json: { user, token } });
 });
 
@@ -72,7 +72,7 @@ app.post('/api/auth/login').to(async (ctx) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return ctx.render({ json: { error: 'Invalid credentials' }, status: 401 });
   
-  const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
+  const token = jwt.sign({ id: user._id.toString(), isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: '24h' });
   await ctx.render({ json: { user, token } });
 });
 

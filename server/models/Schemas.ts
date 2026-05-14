@@ -76,7 +76,7 @@ UserSchema.pre<IUser>('save', async function(next) {
 });
 
 const TripSchema: Schema = new Schema({
-  userId: { type: String, required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
   start_date: String,
   end_date: String,
